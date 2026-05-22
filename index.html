@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uzluksiz Ta'lim | Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050d1a;
+    --bg2: #091426;
+    --card: #0d1f35;
+    --card2: #112438;
+    --teal: #00d4aa;
+    --teal2: #00a882;
+    --amber: #f5a623;
+    --pink: #e040fb;
+    --text: #e8f4f0;
+    --muted: #6b8fa8;
+    --border: rgba(0,212,170,0.15);
+    --correct: #00d4aa;
+    --wrong: #ff5c7a;
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ─── STARS ─── */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: var(--op, 0.6); transform: scale(1); }
+  }
+
+  /* ─── GLOW BLOBS ─── */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+    animation: blobFloat 8s ease-in-out infinite alternate;
+  }
+  .blob1 { width: 500px; height: 500px; background: var(--teal); top: -100px; left: -100px; }
+  .blob2 { width: 400px; height: 400px; background: var(--pink); bottom: -100px; right: -100px; animation-delay: -3s; }
+  .blob3 { width: 300px; height: 300px; background: var(--amber); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -6s; }
+  @keyframes blobFloat {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(30px, -30px) scale(1.1); }
+  }
+
+  /* ─── MAIN WRAP ─── */
+  #app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  /* ─── SCREEN TRANSITIONS ─── */
+  .screen {
+    width: 100%;
+    max-width: 700px;
+    animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .screen.exit {
+    animation: fadeDown 0.35s cubic-bezier(0.55, 0, 1, 0.45) both;
+  }
+  @keyframes fadeDown {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-30px); }
+  }
+
+  /* ─── INTRO SCREEN ─── */
+  .intro-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+  .intro-badge span.dot {
+    width: 6px; height: 6px;
+    background: var(--teal);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.6); }
+  }
+
+  .intro-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .intro-title .highlight {
+    background: linear-gradient(135deg, var(--teal), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .intro-desc {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    max-width: 520px;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+  .stat-pill .icon {
+    font-size: 18px;
+  }
+  .stat-pill strong {
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  .btn-start {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 16px 48px;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, var(--teal), #00a0ff);
+    color: #000;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 40px rgba(0,212,170,0.3);
+  }
+  .btn-start:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(0,212,170,0.45); }
+  .btn-start:active { transform: translateY(0); }
+  .btn-start::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.2));
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-wrap {
+    margin-bottom: 2rem;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .progress-meta .q-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .progress-meta .score-live {
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    padding: 3px 12px;
+    border-radius: 100px;
+    color: var(--teal);
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .progress-track {
+    height: 4px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), #00a0ff);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -3px;
+    width: 10px; height: 10px;
+    background: #00a0ff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00a0ff;
+  }
+
+  /* ─── CATEGORY TAG ─── */
+  .cat-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ─── QUESTION CARD ─── */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 2rem 1.5rem;
+    margin-bottom: 1.25rem;
+    backdrop-filter: blur(12px);
+  }
+  .q-text {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.1rem, 3vw, 1.35rem);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--text);
+  }
+
+  /* ─── OPTIONS ─── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .opt-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .opt-btn:hover:not(:disabled) {
+    border-color: rgba(0,212,170,0.4);
+    background: rgba(0,212,170,0.05);
+    transform: translateX(4px);
+  }
+  .opt-btn:disabled { cursor: default; }
+  .opt-btn .letter {
+    min-width: 30px; height: 30px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .opt-btn.correct {
+    border-color: var(--correct);
+    background: rgba(0,212,170,0.1);
+    transform: translateX(0);
+  }
+  .opt-btn.correct .letter {
+    background: var(--correct);
+    border-color: var(--correct);
+    color: #000;
+  }
+  .opt-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(255,92,122,0.1);
+    transform: translateX(0);
+  }
+  .opt-btn.wrong .letter {
+    background: var(--wrong);
+    border-color: var(--wrong);
+    color: #fff;
+  }
+  .opt-btn.dim { opacity: 0.4; }
+
+  .opt-icon {
+    margin-left: auto;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ─── EXPLANATION ─── */
+  .explanation {
+    background: rgba(0,212,170,0.06);
+    border-left: 3px solid var(--teal);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    color: #a0c8bc;
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.35s ease both;
+  }
+  .explanation strong { color: var(--teal); }
+
+  /* ─── NEXT BUTTON ─── */
+  .btn-next {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,212,170,0.3);
+    background: rgba(0,212,170,0.08);
+    color: var(--teal);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .btn-next:hover { background: rgba(0,212,170,0.16); border-color: var(--teal); }
+
+  /* ─── RESULTS SCREEN ─── */
+  .results-ring-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0 2rem;
+  }
+  .results-ring {
+    position: relative;
+    width: 160px;
+    height: 160px;
+  }
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 12; }
+  .ring-fg {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.22,1,0.36,1);
+  }
+  .ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .ring-sub { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: 0.06em; }
+
+  .result-verdict {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .result-subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .result-stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+  }
+  .result-stat .rs-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .result-stat .rs-lbl { font-size: 12px; color: var(--muted); }
+
+  .review-list {
+    margin-bottom: 2rem;
+  }
+  .review-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.88rem;
+    align-items: flex-start;
+  }
+  .review-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .review-dot.ok { background: rgba(0,212,170,0.2); color: var(--teal); }
+  .review-dot.no { background: rgba(255,92,122,0.2); color: var(--wrong); }
+  .review-q { color: var(--muted); margin-bottom: 2px; }
+  .review-ans { font-weight: 500; }
+
+  .btn-restart {
+    width: 100%;
+    padding: 15px;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, var(--teal), #00a0ff);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+    box-shadow: 0 0 40px rgba(0,212,170,0.25);
+  }
+  .btn-restart:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(0,212,170,0.4); }
+
+  /* ─── TIMER ─── */
+  .timer-bar {
+    height: 2px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 1px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 1s linear, background 1s linear;
+  }
+
+  /* category colors */
+  .cat-ta { background: rgba(0,212,170,0.12); color: var(--teal); }
+  .cat-ai { background: rgba(224,64,251,0.12); color: var(--pink); }
+  .cat-me { background: rgba(245,166,35,0.12); color: var(--amber); }
+  .cat-bl { background: rgba(0,160,255,0.12); color: #00a0ff; }
+
+  @media (max-width: 500px) {
+    .q-card { padding: 1.25rem; }
+    .result-grid { grid-template-columns: repeat(2,1fr); }
+    .result-grid .result-stat:last-child { grid-column: 1/-1; }
+    .stats-row { gap: 8px; }
+    .stat-pill { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<div id="app">
+  <div id="screen" class="screen"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    cat: "ta", catName: "Asoslar",
+    q: "\"Uzluksiz ta'lim\" (Lifelong Learning) qaysi tamoyilga asoslanadi?",
+    opts: [
+      "Ta'lim faqat maktab davrida amalga oshiriladi",
+      "Inson hayoti davomida doimiy o'rganishi va rivojlanishi",
+      "Oliy ta'lim sertifikati barcha bilimlarni qamrab oladi",
+      "O'rganish faqat professional muhitda sodir bo'ladi"
+    ],
+    ans: 1,
+    exp: "Uzluksiz ta'lim — insonning hayot davomida faol o'rganishi, malakalarini yangilab borishi va shaxsiy rivojlanishi jarayoni. UNESCO ta'rifiga ko'ra, bu rasmiy, norasmiy va o'z-o'zidan o'rganishni o'z ichiga oladi."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "Mikro-o'rganish (Microlearning) nima?",
+    opts: [
+      "Kichik bolalar uchun mo'ljallangan ta'lim tizimi",
+      "Qisqa, yo'naltirilgan o'quv modullaridan iborat yondashuv (3-10 daqiqa)",
+      "Mikroskop yordamida o'tkaziladigan laboratoriya darslari",
+      "Minimal xarajat bilan tashkil etiladigan ta'lim jarayoni"
+    ],
+    ans: 1,
+    exp: "Mikro-o'rganish — bitta o'quv maqsadiga qaratilgan, 3-10 daqiqalik qisqa kontentlardan foydalanish. Bu yondashuv diqqat davri qisqa bo'lgan raqamli avlod uchun ayniqsa samarali."
+  },
+  {
+    cat: "bl", catName: "Texnologiyalar",
+    q: "MOOC qanday qisqartma va nima degani?",
+    opts: [
+      "Mobile Online Operational Course — mobil operatsion kurs",
+      "Multi-Outcome Organized Curriculum — ko'p natijali o'quv dasturi",
+      "Massive Open Online Course — ommaviy ochiq onlayn kurs",
+      "Modern Output-Oriented Certification — zamonaviy chiqim sertifikat"
+    ],
+    ans: 2,
+    exp: "MOOC (Massive Open Online Course) — internetda bepul yoki arzon narxda taqdim etiladigan, cheksiz miqdordagi ishtirokchilar uchun ochiq onlayn kurslar. Coursera, edX, Udemy — mashhur MOOC platformalari."
+  },
+  {
+    cat: "ai", catName: "Sun'iy Intellekt",
+    q: "Sun'iy intellekt adaptiv o'rganishda (Adaptive Learning) qanday rol o'ynaydi?",
+    opts: [
+      "Barcha o'quvchilarga bir xil material beradi",
+      "Faqat ma'muriy ishlarni avtomatlаshtiradi",
+      "Har bir o'quvchining bilim darajasi va sur'atiga qarab kontentni moslashtiradi",
+      "O'qituvchilarni to'liq almashtiradi"
+    ],
+    ans: 2,
+    exp: "Adaptiv o'rganish tizimlari (ALS) Sun'iy intellekt yordamida o'quvchining xatolari, sur'ati va afzalliklarini tahlil qilib, unга shaxsiylashtirilgan o'quv yo'lini taklif qiladi. Bu an'anaviy sinfxona yondashuvidan tubdan farq qiladi."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "Aralash o'rganish (Blended Learning) qaysi elementlarni birlashtiradi?",
+    opts: [
+      "Faqat turli fanlarni o'rganish",
+      "Onlayn va yuzma-yuz ta'limni uyg'unlashtirish",
+      "Musiqa va sport bilan akademik ta'limni qo'shish",
+      "Turli yoshdagi o'quvchilarni bitta sinfga birlashtirish"
+    ],
+    ans: 1,
+    exp: "Blended Learning — an'anaviy yuzma-yuz ta'lim va onlayn o'rganishni organik tarzda birlashtiradi. O'quvchilar darsda o'qituvchi bilan ishlaydi, uyda esa raqamli resurslardan foydalanadi."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "\"Teskari sinf\" (Flipped Classroom) modelida qanday yondashuv qo'llaniladi?",
+    opts: [
+      "O'quvchilar dars vaqtida uy vazifasini bajaradi, uyda esa yangi mavzu videosini ko'radi",
+      "O'qituvchi va o'quvchilar rollarini almashtiradi",
+      "Darslar ochiq havoda o'tkaziladi",
+      "Imtihon va darslar o'rnini almashtiradi"
+    ],
+    ans: 0,
+    exp: "Flipped Classroom modelida o'quvchilar uyda yangi mavzu bo'yicha video yoki material o'rganadi, dars vaqtini esa amaliy topshiriqlar, muhokama va muammolarni hal qilishga sarflaydi. Bu o'qituvchi vaqtidan samarali foydalanish imkonini beradi."
+  },
+  {
+    cat: "bl", catName: "Texnologiyalar",
+    q: "LMS (Learning Management System) nima?",
+    opts: [
+      "Laboratoriya asbob-uskunalarini boshqarish tizimi",
+      "O'quv jarayonini raqamli boshqarish, kontentni taqdim etish va natijalarni kuzatish platformasi",
+      "Kutubxona resurslarini kataloglashtirish tizimi",
+      "O'qituvchilarning ish haqini hisoblash dasturi"
+    ],
+    ans: 1,
+    exp: "LMS — o'quv kurslarini yaratish, joylashtirish, boshqarish va o'quvchilarning natijalarini kuzatish uchun mo'ljallangan platforma. Moodle, Canvas, Blackboard — mashhur LMS tizimlari."
+  },
+  {
+    cat: "ai", catName: "Sun'iy Intellekt",
+    q: "Ta'limdagi gamifikatsiya (Gamification) nimaga asoslanadi?",
+    opts: [
+      "Darsliklar o'rniga faqat video o'yinlardan foydalanish",
+      "O'yin elementlarini (reyting, yutuqlar, mukofotlar) o'quv jarayoniga tatbiq etish",
+      "O'quvchilarni matematik o'yinlar orqali dasturlashga o'rgatish",
+      "Tanaffusda o'yin o'ynashga ruxsat berish"
+    ],
+    ans: 1,
+    exp: "Gamifikatsiya — ball, liderlar jadvali, nishon, daraja kabi o'yin mexanizmlarini o'quv jarayoniga kiritish. Bu motivatsiyani oshiradi, ishtirokni kuchaytiradi va material yaxshiroq o'zlashtirilishiga yordam beradi."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "70:20:10 modeli uzluksiz ta'limda nimani anglatadi?",
+    opts: [
+      "70% onlayn, 20% auditoriyadа, 10% o'z-o'zidan o'rganish",
+      "70% ish tajribasi, 20% boshqalardan o'rganish, 10% rasmiy ta'lim",
+      "70% amaliyot, 20% nazariya, 10% imtihon",
+      "70% o'qituvchi, 20% o'quvchi, 10% texnologiya ulushi"
+    ],
+    ans: 1,
+    exp: "70:20:10 modeli (Lombardo va Eichinger) professional rivojlanishning 70% ish joyidagi tajribadan, 20% hamkasblar va mentorlardan, atigi 10% rasmiy trening va kurslardan kelib chiqishini ko'rsatadi."
+  },
+  {
+    cat: "bl", catName: "Texnologiyalar",
+    q: "Kengaytirilgan reallik (AR) ta'limda qanday imkoniyatlar yaratadi?",
+    opts: [
+      "Faqat o'yin va ko'ngilochar dasturlar uchun ishlatiladi",
+      "Haqiqiy muhitga raqamli 3D ob'ektlar va ma'lumotlarni qo'shib, tajribali o'rganishni ta'minlaydi",
+      "Internet aloqasisiz ishlashga imkon beradi",
+      "O'qituvchi rolini to'liq avtomatlаshtiradi"
+    ],
+    ans: 1,
+    exp: "AR texnologiyasi o'quvchilarga insonning anatomiyasini 3D vizualizatsiyada ko'rish, kimyoviy reaktsiyalarni simulyatsiya qilish, tarixiy voqealarni 'ko'rish' imkonini beradi. Bu abstract tushunchalarni ko'rgazmali qiladi."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "Kompetentsiyaga asoslangan ta'lim (CBE) qanday natijaga qaratilgan?",
+    opts: [
+      "Imtihon ballariga erishish",
+      "Vaqt chegarasida kursni tugatish",
+      "O'quvchining muayyan ko'nikma va malakalarni o'zlashtirganligini isbotlashi",
+      "Ko'proq kredit soat to'plash"
+    ],
+    ans: 2,
+    exp: "CBE (Competency-Based Education) — o'quvchi material ustida sarflagan vaqtga emas, balki aniq ko'nikma va bilimlarni o'zlashtirganligi isbotiga asoslanadi. Bu ishga tayyorgarlikka yo'naltirilgan zamonaviy yondashuv."
+  },
+  {
+    cat: "ai", catName: "Sun'iy Intellekt",
+    q: "Ijtimoiy o'rganish (Social Learning) nazariyasi kimning ishlariga asoslanadi?",
+    opts: [
+      "Zigmund Freyd — psixoanaliz nazariyasi",
+      "Albert Bandura — kuzatish va taqlid qilish orqali o'rganish",
+      "B.F. Skinner — operant konditsionlash",
+      "Jean Piaget — kognitiv rivojlanish bosqichlari"
+    ],
+    ans: 1,
+    exp: "Albert Banduraning ijtimoiy o'rganish nazariyasiga ko'ra, odamlar boshqalarni kuzatish, taqlid qilish va ijtimoiy ta'sir orqali o'rganadi. Bugungi kunda bu nazariya onlayn hamjamiyatlar, peer learning va kollaborativ ta'limning asosi hisoblanadi."
+  },
+  {
+    cat: "bl", catName: "Texnologiyalar",
+    q: "Raqamli nishon (Digital Badge / Open Badge) nima?",
+    opts: [
+      "Onlayn do'konlarda ishlatadigan chegirma kuponi",
+      "Ijtimoiy tarmoqlardagi profil rasmi",
+      "Muayyan ko'nikma yoki yutug'ni tasdiqlovchi raqamli sertifikat formati",
+      "Video o'yinlardagi virtual mukofot"
+    ],
+    ans: 2,
+    exp: "Digital Badges — Mozilla Open Badges standartiga asoslangan, ma'lum ko'nikma, yutuq yoki o'quv faoliyatini tasdiqlovchi raqamli sertifikat. Portfellarda ko'rsatish va LinkedIn da ulashish mumkin."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "Loyihaga asoslangan o'rganish (PBL — Project-Based Learning) qanday yondashuv?",
+    opts: [
+      "Ko'p sonli loyihalar haqida o'qish va yod olish",
+      "Real dunyo muammolarini hal qiluvchi loyihalar orqali bilim va ko'nikmalarni o'zlashtirish",
+      "Bir haftalik intensiv trening dasturi",
+      "Faqat maktabda emas, uyda bajarish mumkin bo'lgan topshiriqlar"
+    ],
+    ans: 1,
+    exp: "PBL — o'quvchilar real, murakkab muammolarni hal qiluvchi loyihalarda ishlash jarayonida bilim va ko'nikmalarni o'zlashtiradigan yondashuv. Bu tanqidiy fikrlash, hamkorlik va muammo hal qilish ko'nikmalarini rivojlantiradi."
+  },
+  {
+    cat: "ai", catName: "Sun'iy Intellekt",
+    q: "ChatGPT va boshqa yirik til modellari ta'limga qanday ta'sir ko'rsatmoqda?",
+    opts: [
+      "Faqat salbiy ta'sir ko'rsatmoqda, o'quvchilar o'ylashdan to'xtamoqda",
+      "Ta'limga hech qanday aloqasi yo'q",
+      "Shaxsiylashtirilgan tushuntirish, tezkor fikr-mulohaza va bilimga erishishni demokratlashtirish imkonini bermoqda",
+      "Faqat dasturlash ta'limida qo'llaniladi"
+    ],
+    ans: 2,
+    exp: "GenAI vositalari o'quvchilarga 24/7 shaxsiy tutor bo'lib, kontentni o'z darajasida tushuntira oladi, fikr-mulohaza beradi va ijodiy loyihalarda ko'maklashadi. Bu ta'limdagi inqilob deb baholanmoqda."
+  },
+  {
+    cat: "bl", catName: "Texnologiyalar",
+    q: "Mobil o'rganish (mLearning) ning asosiy afzalligi nima?",
+    opts: [
+      "Faqat katta ekranda ishlash",
+      "Internet bo'lmasa ham ishlash",
+      "Istalgan vaqt va joyda o'rganish imkoniyati — ta'limning demokratlashuvi",
+      "Kurslar bepul bo'lishi"
+    ],
+    ans: 2,
+    exp: "mLearning smartfonlar orqali istalgan vaqt, istalgan joyda o'rganish imkonini beradi. Bu ayniqsa geografik jihatdan cheklangan hudud aholisi, ishchi yoshlar uchun ta'limga kirishish imkoniyatini kengaytiradi."
+  },
+  {
+    cat: "me", catName: "Metodologiya",
+    q: "Tengli o'rganish (Peer Learning) deganda nima tushuniladi?",
+    opts: [
+      "Bir xil yoshdagi o'quvchilar bir-biridan o'rganishi va o'rgatishi",
+      "Faqat tengqurlar bilan o'yin o'ynash",
+      "O'qituvchidan to'liq mustaqil o'rganish",
+      "Bir darajali sertifikat olish"
+    ],
+    ans: 0,
+    exp: "Peer Learning — o'quvchilarning bir-biridan o'rganishi, tushuntirishi va qo'llab-quvvatlashi jarayoni. Tadqiqotlar shuni ko'rsatadiki, material boshqalarga tushuntirilganda eng chuqur o'zlashtiriladi (Protégé Effect)."
+  },
+  {
+    cat: "ta", catName: "Asoslar",
+    q: "Rasmiy va norasmiy o'rganish (Formal vs Informal Learning) orasidagi asosiy farq nima?",
+    opts: [
+      "Norasmiy o'rganish bepul, rasmiy esa pullik",
+      "Rasmiy o'rganish tuzilgan dastur va sertifikat bersa, norasmiy o'z ixtiyori bilan, tuzilmagan shaklda bo'ladi",
+      "Rasmiy o'rganish maktabda, norasmiy uyda amalga oshiriladi",
+      "Ularning hech qanday farqi yo'q"
+    ],
+    ans: 1,
+    exp: "Rasmiy o'rganish — belgilangan dastur, o'qituvchi va sertifikat bilan institutlashgan (maktab, kurs). Norasmiy o'rganish — kitob o'qish, YouTube ko'rish, hamkasblardan o'rganish kabi tuzilmagan, o'z xohishiga ko'ra amalga oshiriladigan jarayon."
+  },
+  {
+    cat: "ai", catName: "Sun'iy Intellekt",
+    q: "xAPI (Tin Can API) qanday texnologiya standartiga tegishli?",
+    opts: [
+      "To'lov tizimlari standartiga",
+      "O'quv tajribalarini kuzatish va ulashish uchun standart — \"Men X ni Y orqali qildim\" formatida",
+      "Video streaming protokoliga",
+      "Bulut xotira standartiga"
+    ],
+    ans: 1,
+    exp: "xAPI — o'quvchining barcha o'quv tajribalarini (simulyatsiya, o'yin, video, real ish) kuzatuvchi standart. U SCORM'dan farqli ravishda LMS tashqarisidagi faoliyatni ham qayd etadi: 'O'quvchi X simulyatsiyani Y ball bilan tugatdi'."
+  },
+  {
+    cat: "ta", catName: "Asoslar",
+    q: "2030-yilga kelib kasblar bozori qanday o'zgarishi kutilmoqda?",
+    opts: [
+      "Kasblar bozori o'zgarmaydi",
+      "Barcha kasblar avtomatlashadi",
+      "Mavjud kasblarning 85% hali ixtiro qilinmagan yangi kasblarga aylanadi va uzluksiz qayta o'rganish zarurati kuchayadi",
+      "Faqat IT sohasida o'zgarishlar kuzatiladi"
+    ],
+    ans: 2,
+    exp: "Dell Technologies tadqiqotiga ko'ra, 2030-yil ishlovchilari bugungidan tubdan farq qiladigan kasblar va vositalar bilan ishlaydi. Bu hozirgi ta'lim tizimlarini qayta o'ylashni, uzluksiz ta'lim va qayta malaka oshirishni (reskilling) asosiy talab qilib qo'ymoqda."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answers = [];
+let timerInterval = null;
+let timeLeft = 30;
+
+function makeStars() {
+  const c = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --dur:${2+Math.random()*5}s; --delay:${-Math.random()*8}s;
+      --op:${0.3+Math.random()*0.7};
+    `;
+    c.appendChild(s);
+  }
+}
+
+function setScreen(html) {
+  const el = document.getElementById('screen');
+  el.classList.add('exit');
+  setTimeout(() => {
+    el.innerHTML = html;
+    el.classList.remove('exit');
+  }, 350);
+}
+
+function showIntro() {
+  setScreen(`
+    <div class="intro-badge"><span class="dot"></span> Ta'lim Testi · 2025</div>
+    <h1 class="intro-title">Uzluksiz Ta'limdagi<br><span class="highlight">Tendensiya va Zamonaviy Yondashuvlar</span></h1>
+    <p class="intro-desc">Lifelong learning, AI ta'lim, blended learning, gamifikatsiya va boshqa zamonaviy yondashuvlar bo'yicha bilimingizni sinab ko'ring.</p>
+    <div class="stats-row">
+      <div class="stat-pill"><span class="icon">🧪</span> <span><strong>${QUESTIONS.length}</strong> savol</span></div>
+      <div class="stat-pill"><span class="icon">⏱</span> <span>Har savolga <strong>30 s</strong></span></div>
+      <div class="stat-pill"><span class="icon">🏆</span> <span>Natija ko'rsatkichi</span></div>
+      <div class="stat-pill"><span class="icon">🔀</span> <span>4 kategoriya</span></div>
+    </div>
+    <button class="btn-start" onclick="startTest()">Testni Boshlash →</button>
+  `);
+}
+
+function startTest() {
+  currentQ = 0; score = 0; answers = [];
+  showQuestion();
+}
+
+function catColor(cat) {
+  return { ta: 'cat-ta', ai: 'cat-ai', me: 'cat-me', bl: 'cat-bl' }[cat] || 'cat-ta';
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 30;
+  updateTimer();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      autoTimeout();
+    }
+  }, 1000);
+}
+
+function updateTimer() {
+  const fill = document.getElementById('timerFill');
+  if (!fill) return;
+  const pct = (timeLeft / 30) * 100;
+  const color = timeLeft > 15 ? 'var(--teal)' : timeLeft > 8 ? 'var(--amber)' : 'var(--wrong)';
+  fill.style.width = pct + '%';
+  fill.style.background = color;
+}
+
+function autoTimeout() {
+  const q = QUESTIONS[currentQ];
+  answers.push({ q: q.q, chosen: -1, correct: q.ans, timeout: true });
+  disableOpts();
+  document.querySelectorAll('.opt-btn')[q.ans].classList.add('correct');
+  showExplanation(q.exp, false);
+  showNextBtn();
+}
+
+function showQuestion() {
+  const q = QUESTIONS[currentQ];
+  const progress = ((currentQ) / QUESTIONS.length) * 100;
+  const letters = ['A', 'B', 'C', 'D'];
+
+  const optsHtml = q.opts.map((o, i) => `
+    <button class="opt-btn" onclick="choose(${i})">
+      <span class="letter">${letters[i]}</span>
+      <span>${o}</span>
+    </button>
+  `).join('');
+
+  setScreen(`
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="q-num">Savol ${currentQ + 1} / ${QUESTIONS.length}</span>
+        <span class="score-live">⭐ ${score} ball</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${progress}%"></div>
+      </div>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%;background:var(--teal)"></div></div>
+    <span class="cat-tag ${catColor(q.cat)}">${q.catName}</span>
+    <div class="q-card">
+      <p class="q-text">${q.q}</p>
+    </div>
+    <div class="options" id="opts">${optsHtml}</div>
+    <div id="expArea"></div>
+    <div id="nextArea"></div>
+  `);
+
+  startTimer();
+}
+
+function choose(idx) {
+  clearInterval(timerInterval);
+  const q = QUESTIONS[currentQ];
+  const correct = idx === q.ans;
+  if (correct) score++;
+  answers.push({ q: q.q, chosen: idx, correct: q.ans, ok: correct, optText: q.opts[idx], correctText: q.opts[q.ans] });
+  disableOpts();
+
+  const btns = document.querySelectorAll('.opt-btn');
+  btns[q.ans].classList.add('correct');
+  btns[q.ans].innerHTML += `<span class="opt-icon">✓</span>`;
+  if (!correct) {
+    btns[idx].classList.add('wrong');
+    btns[idx].innerHTML += `<span class="opt-icon">✗</span>`;
+  }
+  btns.forEach((b, i) => { if (i !== idx && i !== q.ans) b.classList.add('dim'); });
+
+  showExplanation(q.exp, correct);
+  showNextBtn();
+}
+
+function disableOpts() {
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+}
+
+function showExplanation(text, correct) {
+  const area = document.getElementById('expArea');
+  if (!area) return;
+  const icon = correct === false && correct !== undefined ? '⚠️' : '💡';
+  area.innerHTML = `<div class="explanation"><strong>${icon} Izoh:</strong> ${text}</div>`;
+}
+
+function showNextBtn() {
+  const area = document.getElementById('nextArea');
+  if (!area) return;
+  const isLast = currentQ >= QUESTIONS.length - 1;
+  area.innerHTML = `<button class="btn-next" onclick="${isLast ? 'showResults()' : 'nextQ()'}">${isLast ? '🏁 Natijalarni ko\'rish' : 'Keyingi savol →'}</button>`;
+}
+
+function nextQ() {
+  currentQ++;
+  showQuestion();
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  const wrong = QUESTIONS.length - score;
+
+  let verdict, color;
+  if (pct >= 90) { verdict = "🏆 A'lo natija!"; color = "var(--teal)"; }
+  else if (pct >= 70) { verdict = "⭐ Yaxshi natija!"; color = "#00a0ff"; }
+  else if (pct >= 50) { verdict = "📘 O'rtacha daraja"; color = "var(--amber)"; }
+  else { verdict = "🔄 Ko'proq o'rganish kerak"; color = "var(--wrong)"; }
+
+  const sub = pct >= 70
+    ? `Siz uzluksiz ta'lim tendensiyalari bo'yicha kuchli bilimga egasiz. Shunday davom eting!`
+    : `Uzluksiz ta'lim sohasidagi yangi tendensiyalarni chuqurroq o'rganishingizni tavsiya etamiz.`;
+
+  const reviewHtml = answers.map((a, i) => `
+    <div class="review-item">
+      <div class="review-dot ${a.ok ? 'ok' : 'no'}">${a.ok ? '✓' : '✗'}</div>
+      <div>
+        <div class="review-q">${i+1}. ${a.q.substring(0,60)}…</div>
+        <div class="review-ans" style="color:${a.ok ? 'var(--teal)' : 'var(--wrong)'}">${a.timeout ? '⏱ Vaqt tugadi' : a.ok ? `To'g'ri: ${a.correctText.substring(0,50)}` : `✗ Siz: ${(a.optText||'').substring(0,40)} → To'g'ri: ${a.correctText.substring(0,40)}`}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const circumference = 2 * Math.PI * 70; // r=70
+
+  setScreen(`
+    <div style="text-align:center;margin-bottom:1rem">
+      <div class="intro-badge" style="display:inline-flex"><span class="dot"></span> Test Yakunlandi</div>
+    </div>
+    <div class="results-ring-wrap">
+      <div class="results-ring">
+        <svg class="ring-svg" viewBox="0 0 160 160" width="160" height="160">
+          <circle class="ring-bg" cx="80" cy="80" r="70"/>
+          <circle class="ring-fg" id="ringFg" cx="80" cy="80" r="70"
+            stroke="${color}" stroke-dasharray="${circumference}"/>
+        </svg>
+        <div class="ring-label">
+          <span class="ring-pct" style="color:${color}" id="pctNum">0%</span>
+          <span class="ring-sub">NATIJA</span>
+        </div>
+      </div>
+    </div>
+    <div class="result-verdict" style="color:${color}">${verdict}</div>
+    <p class="result-subtitle">${sub}</p>
+    <div class="result-grid">
+      <div class="result-stat">
+        <span class="rs-val" style="color:var(--teal)">${score}</span>
+        <span class="rs-lbl">To'g'ri javob</span>
+      </div>
+      <div class="result-stat">
+        <span class="rs-val" style="color:var(--wrong)">${wrong}</span>
+        <span class="rs-lbl">Xato javob</span>
+      </div>
+      <div class="result-stat">
+        <span class="rs-val" style="color:var(--amber)">${pct}%</span>
+        <span class="rs-lbl">Foiz ko'rsatkich</span>
+      </div>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem">📋 Batafsil Tahlil</div>
+    <div class="review-list">${reviewHtml}</div>
+    <button class="btn-restart" onclick="startTest()">🔄 Testni Qayta Boshlash</button>
+    <div style="height:2rem"></div>
+  `);
+
+  // Animate ring
+  setTimeout(() => {
+    const fg = document.getElementById('ringFg');
+    if (fg) {
+      const offset = circumference - (pct / 100) * circumference;
+      fg.style.strokeDashoffset = offset;
+    }
+    animateNum('pctNum', 0, pct, '%', 1400);
+  }, 400);
+}
+
+function animateNum(id, from, to, suffix, duration) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(from + (to - from) * ease) + suffix;
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+makeStars();
+showIntro();
+</script>
+</body>
+</html>
